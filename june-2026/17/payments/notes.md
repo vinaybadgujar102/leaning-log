@@ -59,10 +59,26 @@ Fix Missed Payments
 
 The payment related data is usually stored as event happened like payment initiated, payment captures,... with related metadata and also as final state of payment in the db. the first part allows us to know exactly what happened during the lifecycle of the payment and the second part allows us to perform read query fast. 
 
+### Ledger System
+
+Basically we store all monetary transactions in a ledger like system where we exactly know what happened. Its ideally a double ledge entry where from one entity some monetary value is reduced and the other entity recieves that same value thus keeping the state of whole system stable.
+
+```
+User Wallet -> Exchange Revenue
+
+User Wallet:      -10
+Exchange Revenue: +10
+```
+
+We keep this in WAL such that no one can delete the earlier entries which will lead to inconsistent state if someone mutates previous data. 
+In our perps its necessary to implement this.
+
 ## Key concepts
 - Payment states
 - Webhooks
 - Idempotency
+- Ledger
+- Double Ledger System
 
 ## Questions
 
