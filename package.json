@@ -1,8 +1,10 @@
 {
-  "name": "practicing_dag",
-  "module": "index.ts",
+  "name": "learning-log",
   "type": "module",
   "private": true,
+  "scripts": {
+    "new": "bun run scripts/new.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
