@@ -50,6 +50,124 @@ Suppose we are running a query which select 999999 rows from the stored 1000000 
 - REPEATABLE READ -> before transaction starts take snapshot of the data of row and read from it in the transaction, solves pahntom read, re read
 - SERIALIZABLE -> if transaction relies on mutliple row and has to follow some business logic then the db should treat each transaction as serializable only allowing one transaction at a time on the data. avoids write skew
 
+## Time-Series Data and TimescaleDB
+
+**Time-series data** is data that arrives continuously over time and has a **timestamp** associated with each record. Examples include:
+
+- Sensor readings (temperature, humidity, pressure, etc.)
+    
+- Stock or cryptocurrency trades
+    
+- Server metrics (CPU, memory usage)
+    
+- IoT device telemetry
+    
+
+The timestamp allows us to analyze how values change over a period of time and perform historical analysis.
+
+### How TimescaleDB Stores Time-Series Data
+
+Time-series workloads are typically **append-only**, meaning new records are continuously added while existing records are rarely modified.
+
+To handle large volumes of data efficiently, TimescaleDB automatically partitions data into **chunks** based on time ranges. This enables efficient querying because only the relevant chunks need to be scanned.
+
+For example:
+
+- Querying data from last year only requires scanning last year's chunks.
+    
+- Querying data from the last hour only touches recent chunks.
+    
+
+This significantly reduces query time and storage overhead.
+
+### Time Bucketing
+
+A common requirement is to aggregate data over fixed time intervals.
+
+TimescaleDB provides **time buckets**, which group records into intervals such as:
+
+- 1 minute
+    
+- 5 minutes
+    
+- 1 hour
+    
+- 1 day
+    
+
+For example, to calculate the average sensor value every minute:
+
+```sql
+SELECT
+  time_bucket('1 minute', ts) AS bucket,
+  AVG(value)
+FROM sensor_data
+GROUP BY bucket;
+```
+
+### Building OHLC Data
+
+The same time-bucketing concept is used to generate financial candlestick data:
+
+- Open
+    
+- High
+    
+- Low
+    
+- Close
+    
+
+For example, trades can be grouped into 1-minute buckets to create 1-minute candles.
+
+### Continuous Aggregations
+
+Aggregations on large datasets can be computationally expensive if calculated repeatedly.
+
+Instead of recomputing aggregates every time a query is executed, TimescaleDB provides **Continuous Aggregations**.
+
+Continuous Aggregations:
+
+1. Aggregate raw data into predefined time buckets.
+    
+2. Store the aggregated results in a materialized view.
+    
+3. Periodically refresh the materialized view as new data arrives.
+    
+
+This allows queries to read precomputed results rather than scanning and aggregating raw data every time.
+
+### Retention Policies
+
+As time-series data grows rapidly, storing all historical data forever can become expensive.
+
+TimescaleDB provides **Retention Policies**, which automatically delete data older than a specified period.
+
+Examples:
+
+- Keep raw sensor data for 30 days.
+    
+- Keep trade data for 1 year.
+    
+- Delete anything older automatically.
+    
+
+This helps control storage costs while retaining only the data that is still valuable.
+
+### Summary
+
+- Time-series data = timestamped data collected over time.
+    
+- TimescaleDB stores data in time-based **chunks** for efficient querying.
+    
+- **Time buckets** group data into fixed intervals for aggregation.
+    
+- **OHLC candles** are built using time-bucketed trade data.
+    
+- **Continuous Aggregations** store precomputed aggregates in materialized views and keep them updated automatically.
+    
+- **Retention Policies** automatically remove old data to manage storage efficiently.
+
 ## Key concepts
 
 - Index
@@ -58,5 +176,14 @@ Suppose we are running a query which select 999999 rows from the stored 1000000 
 - Explain Analyze
 - Data Anamolies (Dirty Read, Phantom Read, Write Skew, Non repeatable read)
 - Isolation Levels
+
+- Time series data
+- Time scale db
+- Chunking 
+- Hypertable
+- Time bucket
+- Aggregation
+- Continous Aggregation
+- Retention Policy
 
 ## References
